@@ -129,23 +129,193 @@ What are the values of the following expressions?
 
 (A 1 10)
 
+(A 0 (A 1 9)))
+
+(A 0 (A 0 (A 1 8)))
+(A 0 (A 0 (A 0 (A 1 7))))
+(A 0 (A 0 (A 0 (A 0 (A 1 6)))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 1 5))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 1 4)))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 1 3))))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 1 2)))))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 1 1))))))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 2)))))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 4))))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 (A 0 8)))))))
+(A 0 (A 0 (A 0 (A 0 (A 0 (A 0 16))))))
+
+... (predicting 6 more *2, which is 2^4 * 2*6 == 2 ^10 == 1024)
+
+(A 0 (A 0 (A 0 (A 0 (A 0 32)))))
+(A 0 (A 0 (A 0 (A 0 64))))
+(A 0 (A 0 (A 0 128)))
+(A 0 (A 0 256))
+(A 0 512)
+1024
 
 
 (A 2 4)
+(A 1 (A 2 3))
+(A 1 (A 1 (A 2 2)))
+(A 1 (A 1 (A 1 (A 2 1))))
+(A 1 (A 1 (A 1 2)))
+(A 1 (A 1 (A 0 (A 1 1))))
+(A 1 (A 1 (A 0 2)))
+(A 1 (A 1 4))
+(A 1 (A 0 (A 1 3)))
+(A 1 (A 0 (A 0 (A 1 2))))
+(A 1 (A 0 (A 0 (A 0 (A 1 1)))))
+(A 1 (A 0 (A 0 (A 0 2))))
+(A 1 (A 0 (A 0 4)))
+(A 1 (A 0 8))
+(A 1 16)
+
+.... (predicting 2^16)....
+
+(A 0 (A 1 15))
+(A 0 (A 0 (A 1 14)))
+...
+
+there will be 15 expressions with (A 0 ?) when we have (A 1 1) as the final right hand side expression. (A 1 1) is 2.
+2^1 * 2 ^ 15 will be 2^16.
+
+65536
+
+
 
 (A 3 3)
+(A 2 (A 3 2))
+(A 2 (A 2 (A 3 1)))
+(A 2 (A 2 2))
+
+(from above, we know (A 2 2))
+
+(A 2 4)
+(A 1 (A 1 4))
+
+(from above, we know 1 4)
+
+(A 1 16)
+
+which we just computed above, 65536.
+
+interesting.
+
+(define (f n) (A 0 n))
+(define (g n) (A 1 n))
+(define (h n) (A 2 n))
+
+f n => 2n
+g n => 2^n
+h n =>
+   2 ^ h(n-1) if n > 1
+   2 if n == 1
+
+;; this one took me a long time; 30-40 minutes. once I did (A 2 5) as an example,
+;; the pattern finally emerged. but looking at
+;; (A 2 1), (A 2 2), (A 2 3), (A 2 4) was not enough to help me see the pattern.
+;; I think I was also insisting on finding a cleaner solution that was not
+;; recursively defined, due to the problem's wording of "give concise
+;; mathmetical definitions for the functions..."
+;; one time I took this class where we had to crack a cipher that depended
+;; on a crappy random number generator. only the assignment was deceptively
+;; worded.
+
+(A 2 5)
+(A 1 (2 4))
+(A 1 65536)
+(expt 2 65536) ;; a very large number with about 5000 digits 
 
 
 
+1.2.2
+
+"In general, the number of steps required by a tree-recursive process will be proportional to the number of nodes in the tree, while the space required will be proportional to the maximum depth of the tree."
+
+True of depth-first-search.
+
+Golden ratio:
+
+phi ^ 2 == phi + 1
 
 
 
+Section 1.2.2 implicit exercise on  Three Recursion
+
+Counting change
+
+(define (count-change amount)
+  (cc amount 5))
+
+(define (cc amount kinds-of-coins)
+  (cond ((= amount 0) 1)
+        ((or (< amount 0) (= kinds-of-coins 0)) 0)
+        (else (+ (cc amount
+                     (- kinds-of-coins 1))
+                 (cc (- amount
+                        (first-denomination kinds-of-coins))
+                     kinds-of-coins)))))
+
+(define (first-denomination kinds-of-coins)
+  (cond ((= kinds-of-coins 1) 1)
+        ((= kinds-of-coins 2) 5)
+        ((= kinds-of-coins 3) 10)
+        ((= kinds-of-coins 4) 25)
+        ((= kinds-of-coins 5) 50)))
+
+(count-change 49)
+
+(define (count-change amount)
+  (cc-iter amount 0 1))
+
+(define (can-terminate-with-0-condition change coin-value)
+  (= 0 (modulo change coin-value)))
+
+(define (count-0-conditions amount coin-to-yield-0-condition)
+  (+ (count-0-conditions-iter coin-to-yield-0-condition 5)
+     (count-0-conditions-iter coin-to-yield-0-condition 4)
+     (count-0-conditions-iter coin-to-yield-0-condition 3)
+     (count-0-conditions-iter coin-to-yield-0-condition 2)
+     (if (= 0 (modulo amount coin-to-yield-0-condition))
+         1
+       0))
+  )
+
+;;
+;; takes first step of an a-k subtree ST1 where k is denomination of
+;; largest coin in set of n coins.  then removes that coin to form
+;; another subtree ST2, and predicts whether coin-to-yield-0-condition
+;; will be a final a-k operation in ST2. if so adds 1, and iterates
+;; to the next ((a-k)-k) subtree that the amount may still support.
+;; 
+(define (count-0-conditions-iter cur-amount coin-to-yield-0-condition largest-coin)
+  (cond ((= 1 coin-to-yield-0-condition) 0)
+        ((>= coin-to-yield-0-condition largest-coin) 0)
+        ((> (- cur-amount (first-denomination largest-coin)) 0)
+         (if (= 0 (modulo (- cur-amount (first-denomination largest-coin)) (first-denomination coin-to-yield-0-condition)))
+             (+ 1 
+                (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition largest-coin)
+                (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition (- largest-coin 1)))
+           0))
+        ;; too much taken away from amount.
+        (0)))
 
 
+;; given 40 cents, calls where adding a nickle reduces remaining amount to 0
+(count-0-conditions-iter 40 2 3)
 
+(define (cc-iter amount cur-amount cur-count)
+  (cond (> cur-amount amount cur-count)
+        
 
+        (if (= 0 (modulo 10 5))
 
+            
+            ()
 
+          (cc-iter amount (+ cur-amount 1) cur-count)
+        
+        )
 
-
+  
 
