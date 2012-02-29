@@ -413,3 +413,54 @@ Counting change
 
 
 
+Exercise 1.11
+
+
+(define (f n)
+  (cond ((< n 3) n)
+        ((+ (f (- n 1))
+            (* 2 (f (- n 2)))
+            (* 3 (f (- n 3)))))))
+
+(define (f2 n)
+  (cond ((< n 3) n)
+        ((f-iter n 2 0 1 2))))
+
+(define (f-iter requested-n cur-n a b c)
+  (cond ((= cur-n requested-n) c)
+        ((f-iter requested-n (+ cur-n 1) b c (+ c (* 2 b) (* 3 a))))))
+
+
+;; higher than 22, like 25, gets really really bad...several seconds
+(f 22)
+(f2 22)
+
+
+Exercise 1.12
+
+1
+1  1
+1  2  1
+1  3  3  1
+1  4  6  4  1
+1  5 10 10  5  1
+1  6 15 20 15  6  1
+
+
+;; assumes first column was 0, and first row was 0.
+;; assumes only legal triangle positions will be called for,
+;; to avoid a (or (< row 0) (> col row)) condition.
+
+(define (pascal row col)
+  (cond ((or (= col 0) (= col row)) 1)
+        ((+ (pascal (- row 1) (- col 1))
+            (pascal (- row 1) col)))))
+
+(pascal 5 0) ;; 1
+(pascal 5 1) ;; 5
+(pascal 5 2) ;; 10
+(pascal 5 3) ;; 10
+(pascal 5 4) ;; 5
+(pascal 5 5) ;; 1
+
+(pascal 5 5) ;; 1
