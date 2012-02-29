@@ -356,7 +356,7 @@ Counting change
 (count-0-conditions-iter 60 3)
 
 
-(count-change 292)
+(count-change 90)
 (count-change-2 292)
         
 
