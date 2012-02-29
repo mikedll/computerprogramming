@@ -240,7 +240,7 @@ phi ^ 2 == phi + 1
 
 
 
-Section 1.2.2 implicit exercise on  Three Recursion
+Section 1.2.2 implicit exercise on  Tree Recursion
 
 Counting change
 
@@ -263,20 +263,35 @@ Counting change
         ((= kinds-of-coins 4) 25)
         ((= kinds-of-coins 5) 50)))
 
-(count-change 49)
 
-(define (count-change amount)
-  (cc-iter amount 0 1))
+(count-change 292)
 
-(define (can-terminate-with-0-condition change coin-value)
-  (= 0 (modulo change coin-value)))
 
+
+;;
+;; Top-level function that computes all 0-condition leafs for all
+;; coins. A 0-condition occurs when the use of a non-penny coin to
+;; make change exactly completes the sum adding up to that exact
+;; change.
+;;
+(define (count-0-conditions-all-coins amount)
+  (+ (count-0-conditions amount 5)
+     (count-0-conditions amount 4)
+     (count-0-conditions amount 3)
+     (count-0-conditions amount 2)))
+
+;;
+;; Tries to compute a-k subtrees starting with 3 major coinsets
+;;   {50, 25, 10, 5}, {25, 10, 5}, {10, 5}
+;;
+;; Every subset leads to its own a-k trees, and each of those
+;; subtrees has its own 0-leafs. This adds them all up.
+;;
 (define (count-0-conditions amount coin-to-yield-0-condition)
-  (+ (count-0-conditions-iter coin-to-yield-0-condition 5)
-     (count-0-conditions-iter coin-to-yield-0-condition 4)
-     (count-0-conditions-iter coin-to-yield-0-condition 3)
-     (count-0-conditions-iter coin-to-yield-0-condition 2)
-     (if (= 0 (modulo amount coin-to-yield-0-condition))
+  (+ (count-0-conditions-iter amount coin-to-yield-0-condition 5)
+     (count-0-conditions-iter amount coin-to-yield-0-condition 4)
+     (count-0-conditions-iter amount coin-to-yield-0-condition 3)
+     (if (= 0 (modulo amount (first-denomination coin-to-yield-0-condition)))
          1
        0))
   )
@@ -289,33 +304,112 @@ Counting change
 ;; to the next ((a-k)-k) subtree that the amount may still support.
 ;; 
 (define (count-0-conditions-iter cur-amount coin-to-yield-0-condition largest-coin)
+
   (cond ((= 1 coin-to-yield-0-condition) 0)
         ((>= coin-to-yield-0-condition largest-coin) 0)
         ((> (- cur-amount (first-denomination largest-coin)) 0)
-         (if (= 0 (modulo (- cur-amount (first-denomination largest-coin)) (first-denomination coin-to-yield-0-condition)))
-             (+ 1 
-                (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition largest-coin)
-                (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition (- largest-coin 1)))
-           0))
-        ;; too much taken away from amount.
-        (0)))
 
+         ;; (if (= 0 (modulo (- cur-amount (first-denomination largest-coin)) (first-denomination coin-to-yield-0-condition)))
+         ;;     (pp (+ (* 1000 cur-amount) (first-denomination coin-to-yield-0-condition))))
+
+         (if (= 0 (modulo (- cur-amount (first-denomination largest-coin)) (first-denomination coin-to-yield-0-condition)))
+
+             (+ 1 
+                (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition largest-coin))
+                (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition (- largest-coin 1)))
+
+           (+ (count-0-conditions-iter (- cur-amount (first-denomination largest-coin)) coin-to-yield-0-condition largest-coin))))
+
+        ;; too much taken away from amount. may try a smaller coin.
+        ((count-0-conditions-iter cur-amount coin-to-yield-0-condition (- largest-coin 1)))))
+
+
+;;
+;; Linearly goes up from 0 to change amount, adding only non-penny 0-condition leaves to
+;; running to total.
+;;
+(define (cc-iter amount cur-amount cur-count)
+  (cond ((= cur-amount amount) cur-count)
+        ((cc-iter amount (+ cur-amount 1) (+ cur-count (count-0-conditions-all-coins (+ cur-amount 1)))))))
+
+
+
+(define (count-change-2 amt)
+  (cc-iter amt 1 1))
+
+(count-change 64)
+(count-change-2 64)
+(count-change 65)
+(count-change-2 65)
+
+
+(count-0-conditions-all-coins 65)
+
+
+(count-0-conditions 65 3)
+(count-0-conditions 65 2)
+
+(count-0-conditions-iter 65 2 5)
+(count-0-conditions-iter 65 2 4)
+(count-0-conditions-iter 65 2 3)
+
+(count-0-conditions-iter 60 3)
+
+
+(count-change 292)
+(count-change-2 292)
+        
 
 ;; given 40 cents, calls where adding a nickle reduces remaining amount to 0
-(count-0-conditions-iter 40 2 3)
+(count-0-conditions-iter 40 2 3) ;; 3
+(count-0-conditions-iter 40 2 4) ;; 2
 
-(define (cc-iter amount cur-amount cur-count)
-  (cond (> cur-amount amount cur-count)
-        
+(count-0-conditions-iter 65 2 5) ;; 2
 
-        (if (= 0 (modulo 10 5))
+(count-0-conditions-all-coins 15)
 
-            
-            ()
+(count-0-conditions-all-coins 32)
 
-          (cc-iter amount (+ cur-amount 1) cur-count)
-        
-        )
+(count-0-conditions-all-coins 10)
 
   
+(cc-iter 10 9 2)
+(cc-iter 10 10 4)
+
+
+;;
+;; return number of combinations less than max for this focuscolumn
+;; and coin combination
+;;
+(define (attempt max f q d n p focuscolumn)
+  (define value (+ (* 50 f)
+                   (* 25 q)
+                   (* 10 d)
+                   (* 5 n)
+                   p))
+
+  (cond ((> value max) 0)
+        ((= value max) 1)
+        ((cond ((= 1 focuscolumn)
+                (attempt max f q d n (+ p 1) focuscolumn))
+               ((+ (attempt max f q d n p (- focuscolumn 1))
+                   (cond ((= focuscolumn 2) (attempt max f q d (+ n 1) p focuscolumn))
+                         ((= focuscolumn 3) (attempt max f q (+ d 1) n p focuscolumn))
+                         ((= focuscolumn 4) (attempt max f (+ q 1) d n p focuscolumn))
+                         ((= focuscolumn 5) (attempt max (+ f 1) q d n p focuscolumn)))
+                   ))))))
+
+;;
+;; return number of combinations less than max for this focuscolumn
+;; and coin combination
+;;
+(define (attempt2 max value focuscolumn)
+  (cond ((> value max) 0)
+        ((= value max) 1)
+        ((cond ((= 1 focuscolumn)
+                (attempt max (+ value 1) focuscolumn))
+               ((+ (attempt max value (- focuscolumn 1))
+                   (cond ((attempt max (+ value (first-denomination focuscolumn)))))))))))
+
+
 
