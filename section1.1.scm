@@ -298,7 +298,7 @@ this mentally is pretty reliable.
 
 Normal-order evaluation
 
-keep expanding the operands until you are left with only primitive operations
+keep expanding the operators until you are left with only primitive operations
 
 (f 5)
 
@@ -313,7 +313,7 @@ Just primitives left. Go ahead and finally evaluate, or reduce, the
 expression. but look at how many evaluations we have to do now!
 
 The book comments the normal-order evaluation has its special uses. Usually
-the interpretter uses applicative-order evaluation: evaluation the operands,
+the interpretter uses applicative-order evaluation: evaluate the operands,
 then apply the function denoted by the operator.
 
 1.1.6. Conditional Expressions and Predicates
@@ -330,6 +330,7 @@ then apply the function denoted by the operator.
   (cond ((> a 0) a)
         ((= a 0) 0)
         ((< a 0) (- a))))
+
 
 
 (define (absolute a)
@@ -359,6 +360,7 @@ condition: 5 < x < 10
 (inrange 6)
 (inrange 9)
 (inrange 11)
+
 
 
 
@@ -393,9 +395,7 @@ Exercise 1.2.
 
 (5 + 4 + (2 - (3 - (6 + 1/3))))   / (3 * (6 - 2)(2 - 7))
 
-(/ (+ 5 (+ 4 (- 2 (- 3 (+ 6 (/ 1 3))))))
-   (* 3 (- 6 2) (- 2 7)))
-
+(/ (+ 5 4 (- 2 (- 3 (+ 6 (/ 1 3))))) (* 3 (* (- 6 2) (- 2 7))))
 
 Exercise 1.3. 
 
@@ -404,6 +404,11 @@ Exercise 1.3.
 
 (define (sum-of-squares x y) (+ (* x x) (* y y)))
 
+(define (sum-of-squares-of-larger a b c)
+  (cond ((and (<= a b) (<= a c)) (sum-of-squares b c))
+        ((and (<= b a) (<= b c)) (sum-of-squares a c))
+        ((and (<= c a) (<= c b)) (sum-of-squares a b))
+        (else -1)))
 
 (define (sum-of-squares-of-larger a b c)
   (cond ((and (not (> a b)) (not (> a c))) (sum-of-squares b c))
@@ -414,7 +419,7 @@ Exercise 1.3.
 
 (sum-of-squares-of-larger 3 2 1)
 (sum-of-squares-of-larger 1 2 3)
-(sum-of-squares-of-larger 3 2 1)
+(sum-of-squares-of-larger 3 1 2)
 
 
 
@@ -425,8 +430,8 @@ Exercise 1.4.
   ((if (> b 0) + -) a b))
 
 
-This is interesting. We use a if special form to determine which primtive procedure to use.
 
+This is interesting. We use a if special form to determine which primtive procedure to use.
 
 
 Exercise 1.5. 
@@ -443,13 +448,17 @@ Exercise 1.5.
 (test 0 (p))
 
 
-
 Normal order evaluation of the above will not infinitely recurse. Applicable-order evaluation will indeed infinitely recurse.
 
 
 1.1.7  Example: Square Roots by Newton's Method
 
 guess = 1 / target = 2
+
+
+
+
+
 
 (define (sqrt-iter guess target)
   (if (good-enough? guess target)
@@ -476,7 +485,7 @@ guess = 1 / target = 2
 
 (square (sqrt 1000))
 
-
+------ left off here 2-29-12
 
 (define (new-if predicate then-clause else-clause)
   (cond (predicate then-clause)
